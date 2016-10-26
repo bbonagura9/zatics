@@ -409,58 +409,22 @@ def report_tickets_per_weekday():
                             tickets_per_weekday=tickets_per_weekday,
                             total_tickets=total_tickets)
 
-@app.route('/report/tickets_time_per_area')
-@login_required
-@report_permission.require()
-def report_tickets_time_per_area():
-    def avg(aList):
-        size = len(aList)
-        return reduce(lambda a,b: a+float(b)/size, map(int, aList))
-
-    tickets_time_per_area = []
-    area_time = dict([ (a[0], []) for a in db.session.query(Area.name).all() ])
-    for ticket in db.session.query(Ticket).all():
-        ta_events = db.session.query(TicketAreaTransferEvent) \
-                              .filter(TicketAreaTransferEvent.ticket_id == ticket.id) \
-                              .order_by(TicketAreaTransferEvent.at) \
-                              .all()
-        tc_events = db.session.query(TicketCloseEvent).filter(TicketCloseEvent.ticket_id == ticket.id).all()
-        events = sorted(ta_events + tc_events, key=lambda e: e.at)
-
-        for i in xrange(0, len(events)-1):
-            if isinstance(events[i], TicketAreaTransferEvent):
-                time = int((events[i+1].at - events[i].at).total_seconds())
-                area = events[i].to_area.name
-                area_time[area].append(time)
-
-        if len(events) > 0 and isinstance(events[-1], TicketAreaTransferEvent):
-            time = int((datetime.now() - events[-1].at).total_seconds())
-            area = events[-1].to_area.name
-            area_time[area].append(time)
-
-    for a in area_time:
-        avg_time = int(avg(area_time[a]))
-        tickets_time_per_area.append((a, timedelta_str(timedelta(0, avg_time)), round(avg_time,2)))
-    tickets_time_per_area.sort(key=lambda t: t[2])
-
-    return render_template('report_tickets_per_weekday.html', 
-                            tickets_time_per_area=tickets_time_per_area)
-
 @app.route('/report/tickets_close_reason')
 @login_required
 @report_permission.require()
 def report_tickets_close_reason():
     tickets_close_reason = []
-    qtickets = db.session.query(Ticket)
-    closed_tickets = qtickets.filter(Ticket.is_closed == True).count()
-    res = db.session.query(Ticket, func.count(Ticket.id)).filter(Ticket.is_closed == True).group_by(Ticket.close_reason).all()
-    for ticket, count in sorted(res, key=lambda r: r[1], reverse=True):
-        tickets_close_reason.append((ticket.close_reason, count, 100*float(count)/closed_tickets))
+    closed_tickets = db.session.query(TicketCloseEvent).count()
+    res = db.session.query(TicketCloseEvent, func.count(TicketCloseEvent.id)) \
+                    .group_by(TicketCloseEvent.reason_id) \
+                    .all()
+    for event, count in sorted(res, key=lambda r: r[1], reverse=True):
+        tickets_close_reason.append(
+            (event.reason.reason, count, 100*float(count)/closed_tickets)
+        )
 
     return render_template('report_tickets_close_reason.html', 
-                            tickets_close_reason=tickets_close_reason,
-                            tr_close_reason=Ticket.CLOSE_REASONS)
-
+                            tickets_close_reason=tickets_close_reason)
 
 @app.route('/report/recent_log')
 @login_required

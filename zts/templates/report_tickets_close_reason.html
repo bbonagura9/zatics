@@ -11,7 +11,7 @@ $(window).load( function () {
 	var chart = new CanvasJS.Chart("ticket_close_reason_chart",
 	{
 		title:{
-			text: "Motivo de Fechamento"
+			text: "Closing Reason"
 		},
 		legend: {
 			maxWidth: 350,
@@ -23,8 +23,8 @@ $(window).load( function () {
 			showInLegend: true,
 			legendText: "{indexLabel}",
 			dataPoints: [
-				{% for reason, tickets, ratio in tickets_close_reason %}
-				{ y: {{ tickets }}, indexLabel: '{{ tr_close_reason[reason] }}' },
+				{% for reason, count, ratio in tickets_close_reason %}
+				{ y: {{ count }}, indexLabel: '{{ reason }}' },
 				{% endfor %}
 			]
 		}
@@ -41,12 +41,12 @@ $(window).load( function () {
 		<table class="table table-striped" style="width: 250px">
 		<tbody>
 			<tr>
-				<th>Motivo</th>
-				<th>Qtde.</th>
+				<th>Reason</th>
+				<th>Count</th>
 			</tr>
 			{% for reason, tickets, ratio in tickets_close_reason %}
 			<tr>
-				<td><strong>{{ tr_close_reason[reason] }}</strong></td>
+				<td><strong>{{ reason }}</strong></td>
 				<td>{{ tickets }} ({{ '%.2f' % ratio }}%)</td>
 			</tr>
 			{% endfor %}
