@@ -147,6 +147,20 @@ class Ticket(db.Model):
         logger.info(u'%s added note to ticket #%d' % (by.user, self.id))
         return note
 
+    def reopen(self, by):
+        self.touch()
+
+        note_event = TicketReopenEvent(
+            ticket = self,
+            user = by,
+            at = datetime.now(),
+        )
+        db.session.add(note_event)
+        db.session.commit()
+
+        logger.info(u'%s reopened ticket #%d' % (by.user, self.id))
+        return note
+
     def take(self, by):
         self.touch()
 

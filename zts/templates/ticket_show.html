@@ -66,13 +66,6 @@
 					<tr>
 						<td>
 							<strong>Zabbix</strong>
-							{% if trigger_value is not none %}
-							<p>
-								<a href="http://10.52.152.115/zabbix/events.php?triggerid={{ ticket.zabbix_trigger_id }}" target="_blank">
-								<span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>&nbsp;Eventos
-								</a>
-							</p>
-							{% endif %}
 						</td>
 						<td>
 							{% if trigger_value == 1 %}
