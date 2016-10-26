@@ -1,0 +1,59 @@
+{% extends "layout.html" %}
+
+{% block header %}
+<script type="text/javascript" src="{{ url_for('static', filename='canvasjs.min.js') }}"></script>
+{% endblock %}
+
+{% block body %}
+
+<script type="text/javascript">
+$(window).load( function () {
+	var chart = new CanvasJS.Chart("ticket_close_reason_chart",
+	{
+		title:{
+			text: "Motivo de Fechamento"
+		},
+		legend: {
+			maxWidth: 350,
+			itemWidth: 120
+		},
+		data: [
+		{
+			type: "pie",
+			showInLegend: true,
+			legendText: "{indexLabel}",
+			dataPoints: [
+				{% for reason, tickets, ratio in tickets_close_reason %}
+				{ y: {{ tickets }}, indexLabel: '{{ tr_close_reason[reason] }}' },
+				{% endfor %}
+			]
+		}
+		]
+	});
+	chart.render();
+});
+</script>
+<div class="row">
+	<div class="col-lg-8">
+		<div id="ticket_close_reason_chart" style="height: 300px; width: 100%;"></div>
+	</div>
+	<div class="col-lg-4">
+		<table class="table table-striped" style="width: 250px">
+		<tbody>
+			<tr>
+				<th>Motivo</th>
+				<th>Qtde.</th>
+			</tr>
+			{% for reason, tickets, ratio in tickets_close_reason %}
+			<tr>
+				<td><strong>{{ tr_close_reason[reason] }}</strong></td>
+				<td>{{ tickets }} ({{ '%.2f' % ratio }}%)</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+		</table>
+	</div>
+</div>
+
+
+{% endblock %}

@@ -1,0 +1,5 @@
+Flask == 0.10.1
+Flask_SQLAlchemy == 2.1
+Flask_WTF == 0.12
+loremipsum == 1.0.5
+WTForms == 2.1

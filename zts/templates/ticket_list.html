@@ -1,0 +1,55 @@
+{% extends "layout.html" %}
+{% block body %}
+	<div class="panel panel-default">
+		<div class="panel-body">
+		<h2>{{ ticket_list_title }}</h2>
+
+		<table class="table table-striped table-hover">
+			<tr>
+				<td style="width: 20px">#</td>
+				<td>Area</td>
+				<td style="width: 140px">Owner</td>
+				<td>Title</td>
+				<td style="width: 140px">Last Change</td>
+			</tr>
+			{% for ticket in tickets %}
+			{% if ticket.zabbix_trigger_id in trigger_values and trigger_values[ticket.zabbix_trigger_id] == 0 %}
+			<tr class="success">
+			{% else %}
+			<tr>
+			{% endif %}
+				<td>{{ ticket.id }}</td>
+				<td><a href="{{ url_for('ticket_list_area', area_id=ticket.current_area.id) }}">{{ ticket.current_area.name }}</a></td>
+				<td>{{ ticket.owned_by.name }}</td>
+				<td>
+					<a href="{{ url_for('ticket_show', ticket_id=ticket.id) }}">
+					{{ ticket.title }}
+					</a>
+				</td>
+				<td>{{ ticket.last_change.strftime('%d/%m/%Y %H:%M') }}</td>
+			</tr>
+			{% endfor %}
+		</table>
+		{% if pagination['total'] > 1 %}
+		<ul class="pagination">
+			{% if pagination['page'] > 1 %}
+			<li>
+				<a href="{{ url_for(request.endpoint, page=pagination['page']-1, **request.view_args) }}" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a>
+			</li>
+			{% endif %}
+			{% for page in pagination_range %}
+			<li class="{{ 'active' if page == pagination['page'] else '' }}"><a href="{{ url_for(request.endpoint, page=page, **request.view_args) }}">{{ page }}</a></li>
+			{% endfor %}
+			{% if pagination['page'] < pagination['total'] %}
+			<li>
+				<a href="{{ url_for(request.endpoint, page=pagination['page']+1, **request.view_args) }}" aria-label="Next"><span aria-hidden="true">&raquo;</span></a>
+			</li>
+			{% endif %}
+		</ul>
+		{% endif %}
+	</div>
+
+	<script type="text/javascript">
+		window.setTimeout(function() { window.location.reload(); }, 30*1000);
+	</script>
+{% endblock %}

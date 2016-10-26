@@ -1,0 +1,61 @@
+{% extends "layout.html" %}
+
+{% block header %}
+<script type="text/javascript" src="{{ url_for('static', filename='canvasjs.min.js') }}"></script>
+{% endblock %}
+
+{% block body %}
+
+<script type="text/javascript">
+	$(window).load( function () {
+		var data = [];
+		var i = 0;
+		{% for dayofweek, count in tickets_per_weekday %}
+		data.push({ label: "{{ dayofweek }}", x: i++, y: {{ count }} });
+		{% endfor %}
+		var chart = new CanvasJS.Chart("ticket_open_per_day_of_week",
+			{
+				title:{
+				text: "Tickets abertos por dia da semana"
+			},
+			axisY: {
+				title: "Tickes criados"
+			},
+			data: [
+				{
+					color: "#8080a0",
+					dataPoints: data
+				}
+			]
+		});
+
+		chart.render();
+	});
+</script>
+<div class="row">
+	<div class="col-lg-8">
+		<div id="ticket_open_per_day_of_week" style="height: 300px; width: 100%;"></div>
+	</div>
+	<div class="col-lg-4">
+		<table class="table table-striped" style="width: 250px">
+		<tbody>
+			<tr>
+				<th>Dia</th>
+				<th>Tickets</th>
+			</tr>
+			{% for dayofweek, count in tickets_per_weekday %}
+			<tr>
+				<td><strong>{{ dayofweek }}</strong></td>
+				<td>{{ count }}</td>
+			</tr>
+			{% endfor %}
+			<tr>
+				<td><strong>Total</strong></td>
+				<td>{{ total_tickets }}</td>
+			</tr>
+		</tbody>
+		</table>
+	</div>
+</div>
+
+{% endblock %}

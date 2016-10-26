@@ -1,0 +1,281 @@
+{% extends "layout.html" %}
+{% block body %}
+	<div class="panel panel-default">
+		<div class="panel-body">
+			<h3>
+				Ticket #{{ ticket.id }}
+				{% if ticket.is_closed %}
+				<span class="label label-default" id="span_estado">Closed</span>
+				{% else %}
+					{% if show_close %}
+					<script type="text/javascript">
+						function confirm_close() {
+							return confirm('Are you sure you want to close the ticket?');
+						}
+					</script>
+					<div class="btn-group pull-right">
+						<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+						Fechar <span class="caret"></span>
+						</button>
+						<ul class="dropdown-menu">
+							{% for reason in close_reasons %}
+							<li>
+								<a href="{{ url_for('ticket_close', ticket_id=ticket.id, reason_id=reason.id) }}" 
+								onclick="return confirm_close();">{{ reason.reason }}</a>
+							</li>
+							{% endfor %}
+						</ul>
+					</div>
+					{% endif %}
+				{% endif %}
+			</h3>
+
+			<table class="table table-striped ">
+				<tbody>
+					<tr>
+						<td><strong>Title</strong></td>
+						<td>
+						{% if ticket.title.startswith('Desastre') %}
+						<span class="label label-desastre">Desastre</span>&nbsp;&nbsp;
+						{% elif ticket.title.startswith('Alta') %}
+						<span class="label label-alta">Alta</span>&nbsp;&nbsp;
+						{% elif ticket.title.startswith('Média') %}
+						<span class="label label-media">Média</span>&nbsp;&nbsp;
+						{% endif %}
+						{{ ticket.title.replace('Desastre: ', '').replace('Alta: ', '').replace('Média: ', '') }}
+						</td>
+					</tr>
+					<tr>
+						<td><strong>Text</strong></td>
+						<td>
+							{{ ticket.text | nl2br}}                    
+						</td>
+					</tr>
+					<tr>
+						<td><strong>As of</strong></td>
+						<td>
+							<span class="glyphicon glyphicon-time" aria-hidden="true"></span>&nbsp;&nbsp;
+							{{ ticket.created_at.strftime('%d/%m/%Y %H:%M') }}
+							{% if ticket.created_by is none %}
+								&nbsp;&nbsp;<span class="glyphicon glyphicon-user" aria-hidden="true"></span>&nbsp;&nbsp;
+								{{ ticket.created_by.name }}
+							{% endif %}
+						</td>
+					</tr>
+					{% if trigger_value is not none %}
+					<tr>
+						<td>
+							<strong>Zabbix</strong>
+							{% if trigger_value is not none %}
+							<p>
+								<a href="http://10.52.152.115/zabbix/events.php?triggerid={{ ticket.zabbix_trigger_id }}" target="_blank">
+								<span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>&nbsp;Eventos
+								</a>
+							</p>
+							{% endif %}
+						</td>
+						<td>
+							{% if trigger_value == 1 %}
+							<p class="text-danger">
+								<strong>The trigger is currently in PROBLEM state.</strong>
+							</p>
+							{% elif trigger_value == 0 %}
+							<p class="text-success">
+								<strong>The trigger is currently in OK state.</strong>
+							</p>
+							{% endif %}
+
+							{% if host_triggers|count > 0 %}
+							<p>Other triggers from the same host:</p>
+							{% for trigger in host_triggers %}
+								<p>
+								{% if trigger['priority'] == '5' %}
+								<span class="label label-desastre">Desastre</span>&nbsp;&nbsp;
+								{% elif trigger['priority'] == '4' %}
+								<span class="label label-alta">Alta</span>&nbsp;&nbsp;
+								{% elif trigger['priority'] == '3' %}
+								<span class="label label-media">Média</span>&nbsp;&nbsp;
+								{% elif trigger['priority'] == '2' %}
+								<span class="label label-alerta">Alerta</span>&nbsp;&nbsp;
+								{% elif trigger['priority'] == '1' %}
+								<span class="label label-info">Informação</span>&nbsp;&nbsp;
+								{% endif %}
+								{{ trigger['description'] }} 
+								({{ trigger['age'] }})
+								{% if trigger.get('ticket_id', None) is not none %}
+								(Ticket <a href="{{ url_for('ticket_show', ticket_id=trigger['ticket_id']) }}">{{ trigger['ticket_id'] }}</a>)
+								{% endif %}
+								</p>
+							{% endfor %}
+							{% endif %}
+						</td>
+					</tr>
+					{% endif %}
+					<tr>
+						<td><strong>Owner</strong></td>
+						<td>
+							{{ ticket.owned_by.name }}
+							{% if ticket.owned_by != current_user and not ticket.is_closed and my_area %}
+							<form method="get" role="tame_form" class="form-inline" action="{{ url_for('ticket_take', ticket_id=ticket.id) }}">
+								<button type="button" class="btn btn-primary" data-toggle="modal" data-target=".take-modal">Take</button>
+								<div class="modal fade take-modal" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel">
+									<div class="modal-dialog modal-sm">
+										<div class="modal-content">
+											<div class="modal-body">
+												<p class="text-primary">Are you sure you want to take the ticket?</p>
+											</div>
+											<div class="modal-footer">
+												<button type="button" class="btn btn-default" data-dismiss="modal">No</button>
+												<button type="submit" class="btn btn-default">Yes</button>
+											</div>
+										</div>
+									</div>
+								</div>
+							</form>
+							{% endif %}
+						</td>
+					</tr>
+					{% if not ticket.is_closed %}
+					<tr>
+						<td><strong>Área</strong></td>
+						<td>
+							{% if my_area and (ticket.owned_by is none or ticket.owned_by == current_user) %}
+							<script type="text/javascript">
+								function checkPendingNote() {
+									if ($("#formNewNote").length > 0 && $("#formNewNote")[0].text.value != "") {
+										alert('The text field on insert note form is not empty. To insert a new note, please press the insert button below the text field.');
+										return false;
+									}
+									return true;
+								}
+							</script>
+							<form id="formTicketTransfer" method="get" role="transfer_form" class="form-inline" action="{{ url_for('ticket_transfer', ticket_id=ticket.id) }}" onsubmit="return checkPendingNote();">
+								<div class="form-group">
+								{{ transfer_form.area_id(class_='form-control') }}
+								<button type="button" class="btn btn-primary" data-toggle="modal" data-target=".transfer-modal">Transfer</button>
+
+								<div class="modal fade transfer-modal" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel">
+									<div class="modal-dialog modal-sm">
+										<div class="modal-content">
+											<div class="modal-body">
+												<p class="text-primary">Are you sure you want to transfer the ticket?</p>
+											</div>
+											<div class="modal-footer">
+												<button type="button" class="btn btn-default" data-dismiss="modal">No</button>
+												<button type="submit" class="btn btn-default">Yes</button>
+											</div>
+										</div>
+									</div>
+								</div>
+								
+								</div>
+							</form>
+							{% else %}
+							<a href="{{ url_for('ticket_list_area', area_id=ticket.current_area.id) }}">{{ ticket.current_area.name }}</a>
+							{% endif %}
+						</td>
+					</tr>
+					{% endif %}
+				</tbody>
+			</table>
+
+
+			<h4 class="text-left" id="tabela_notas"><strong>History</strong></h4>
+			
+			<div class="container" style="width: 800px">
+			{% if ticket.owned_by == current_user and not ticket.is_closed and my_area %}
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<strong>Insert new note</strong>
+				</div>
+				<div class="panel-body">
+					<form role="newnote" id="formNewNote" style="width: 720px" action="{{ url_for('ticket_newnote', ticket_id=ticket.id) }}" method="POST">
+						{{ noteform.csrf_token }}
+						<div class="form-group">
+							{{ noteform.text(size=200, class_='form-control', style='height: 100px', placeholder='Note text' ) }}
+						</div>
+						<button type="submit" class="btn btn-default">Insert</button>
+					</form>
+				</div>
+			</div>
+			{% endif %}
+			{% for event in ticket.events|sort(reverse=True, attribute='at') %}
+				{% if event.__repr__() == 'TicketAreaTransferEvent' %}
+					<div class="panel panel-default">
+						<div class="panel-heading">
+							<span class="glyphicon glyphicon-user" aria-hidden="true"></span>&nbsp;&nbsp;
+							{{ event.user.name }}
+							&nbsp;&nbsp;<span class="glyphicon glyphicon-share-alt" aria-hidden="true"></span>&nbsp;&nbsp;
+							{{ event.to_area.name }}
+							<span class="pull-right">
+								<span class="glyphicon glyphicon-time" aria-hidden="true"></span>
+								&nbsp;{{ event.at.strftime('%d/%m/%Y %H:%M') }}
+							</span>
+						</div>
+					</div>
+				{% elif event.__repr__() == 'TicketTakeEvent' %}
+					<div class="panel panel-default">
+						<div class="panel-heading">
+							<span class="glyphicon glyphicon-user" aria-hidden="true"></span>&nbsp;&nbsp;
+							{{ event.user.name }} has taken the ticket
+							<span class="pull-right">
+								<span class="glyphicon glyphicon-time" aria-hidden="true"></span>
+								&nbsp;{{ event.at.strftime('%d/%m/%Y %H:%M') }}
+							</span>
+						</div>
+					</div>
+				{% elif event.__repr__() == 'TicketCloseEvent' %}
+					<div class="panel panel-default">
+						<div class="panel-heading">
+							<span class="glyphicon glyphicon-user" aria-hidden="true"></span>&nbsp;&nbsp;
+							{{ event.user.name }}&nbsp;&nbsp;
+							<span class="glyphicon glyphicon-remove-sign" aria-hidden="true"></span>&nbsp;&nbsp;
+							Closed the ticket
+							<span class="pull-right">
+								<span class="glyphicon glyphicon-time" aria-hidden="true"></span>
+								&nbsp;{{ event.at.strftime('%d/%m/%Y %H:%M') }}
+							</span>
+						</div>
+					</div>
+				{% elif event.__repr__() == 'TicketNoteAddedEvent' %}
+					<div class="panel panel-default">
+						<div class="panel-heading">
+							<span class="glyphicon glyphicon-user" aria-hidden="true"></span>&nbsp;&nbsp;
+							{{ event.note.by.name }}&nbsp;&nbsp;
+							<span class="glyphicon glyphicon-envelope" aria-hidden="true"></span>&nbsp;&nbsp;
+							<span class="pull-right">
+								<span class="glyphicon glyphicon-time" aria-hidden="true"></span>
+								&nbsp;{{ event.note.at.strftime('%d/%m/%Y %H:%M') }}
+							</span>
+						</div>
+						<div class="panel-body">{{ event.note.text | nl2br }}</div>
+					</div>
+				{% elif event.__repr__() == 'TicketReopenEvent' %}
+					<div class="panel panel-default">
+						<div class="panel-heading">
+							<span class="glyphicon glyphicon-user" aria-hidden="true"></span>&nbsp;&nbsp;
+							{{ event.user.name }} reopened the ticket
+							<span class="glyphicon glyphicon-asterisk" aria-hidden="true"></span>&nbsp;&nbsp;
+							<span class="pull-right">
+								<span class="glyphicon glyphicon-time" aria-hidden="true"></span>
+								&nbsp;{{ event.at.strftime('%d/%m/%Y %H:%M') }}
+							</span>
+						</div>
+					</div>
+				{% endif %}				
+			{% endfor %}
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<span class="glyphicon glyphicon-user" aria-hidden="true"></span>&nbsp;&nbsp;
+						{{ ticket.created_by.name }} opened the ticket
+						<span class="glyphicon glyphicon-asterisk" aria-hidden="true"></span>&nbsp;&nbsp;
+						<span class="pull-right">
+							<span class="glyphicon glyphicon-time" aria-hidden="true"></span>
+							&nbsp;{{ ticket.created_at.strftime('%d/%m/%Y %H:%M') }}
+						</span>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+{% endblock %}

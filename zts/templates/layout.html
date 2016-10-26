@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Zatics</title>
+
+    <!-- Latest compiled and minified CSS -->
+    <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">-->
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}">
+
+    <script src="{{ url_for('static', filename='jquery-2.2.1.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.min.js') }}"></script>
+
+    <!-- Optional theme -->
+    <!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">-->
+    <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap-theme.min.css') }}">
+
+    <style type="text/css">
+        .label-desastre { background-color: rgb(255,  56,  56); }
+        .label-alta { background-color: rgb(255, 153, 153); }
+        .label-media { background-color: rgb(255, 182, 137); }
+        .label-alerta { background-color: rgb(255, 246, 165); }
+        .label-info { background-color: rgb(214, 246, 255); }
+    </style>
+
+    {% block header %}
+    {% endblock %}
+</head>
+<body>
+
+<div class="container" style="width: 80%">
+    <nav class="navbar navbar-default" role="navigation">
+        <div class="container-fluid">
+            <h1>ZATICS <small>A tiny ticketing system for Zabbix</small></h1>
+                {% if current_user.is_authenticated %}
+                <div class="navbar-form navbar-right">
+                    <ul class="nav nav-pills">
+                        <li class="dropdown">
+                            <a href="{{ url_for('index') }}" role="button">Overview</a>
+                        </li>
+                        <li role="presentation" class="dropdown">
+                            <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">
+                            Tickets <span class="caret"></span>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li role="presentation"><a href="{{ url_for('ticket_list_mine') }}">Mine</a></li>
+                                <li role="presentation">
+                                    <a href="{{ url_for('ticket_list_orphans') }}">Orphans
+                                    {% if orphans_count > 0 %}
+                                        <span class="label label-default">{{ orphans_count }}</span>
+                                    {% endif %}
+                                    </a>
+                                </li>
+                                <li role="separator" class="divider"></li>
+                                {% for area in current_user.areas %}
+                                <li role="presentation"><a href="{{ url_for('ticket_list_area', area_id=area.id) }}">{{ area.name }}</a></li>
+                                {% endfor %}
+                                <li role="separator" class="divider"></li>
+                                <li role="presentation"><a href="{{ url_for('ticket_list_closed') }}">Closed</a></li>
+                                <li role="separator" class="divider"></li>        
+                                <li role="presentation"><a href="{{ url_for('ticket_open') }}">New ticket</a></li>
+                            </ul>
+                        </li>
+                        {% if current_user.can_read_report() %}
+                        <li role="presentation" class="dropdown">
+                            <a class="dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">
+                            Reports <span class="caret"></span>
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li role="presentation"><a href="{{ url_for('report_tickets_per_area') }}">Tickets por área</a></li>
+                                <li role="presentation"><a href="{{ url_for('report_tickets_per_weekday') }}">Tickets por dia da semana</a></li>
+                                <!--<li role="presentation"><a href="{{ url_for('report_tickets_time_per_area') }}">Tempo de atendimento por área</a></li>-->
+                                <li role="presentation"><a href="{{ url_for('report_tickets_close_reason') }}">Fechados por motivo</a></li>
+                                <li role="separator" class="divider"></li>
+                                <li role="presentation"><a href="{{ url_for('report_recent_log') }}">Atividades recentes</a></li>
+                                <li role="presentation"><a href="{{ url_for('report_log_overview') }}">Visão geral de atividade</a></li>
+                                <li role="separator" class="divider"></li>
+                                <li role="presentation"><a href="{{ url_for('report_daily') }}">Diário</a></li>
+                                <li role="presentation"><a href="{{ url_for('report_stats') }}">Números do dia</a></li>
+                            </ul>
+                        </li>
+                        {% endif %}
+                        {% if current_user.is_admin() %}
+                        <li role="presentation"><a href="{{ url_for('admin.index') }}">Admin</a></li>
+                        {% endif %}
+                        <li role="presentation"><a href="{{ url_for('logout') }}">Logout</a></li>
+                    </ul>
+                </div>
+                <p class="navbar-text navbar-right">Welcome {{ current_user.name }}!</p>
+                {% else %}
+                <div class="navbar-form navbar-right">
+                    <form role="form" method="POST" action="{{ url_for('login') }}">
+                        <div class="form-group">
+                            {{ loginForm.csrf_token }}
+                            {{ loginForm.user(size=20, class_='form-control', placeholder='Usuário' ) }}
+                            {{ loginForm.password(size=20, class_='form-control', placeholder='Senha') }}
+                        </div>
+                        <button type="submit" class="btn btn-default">Entrar</button>
+                    </form>
+                </div>
+                {% endif %}
+        </div>
+    </nav>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                {{ message | safe }}
+            </div>
+        {% endfor %}
+    {% endwith %}
+</div>
+
+<div class="container-fluid" style="width: 80%;">
+    {% block body %}
+    {% endblock %}
+</div>
+
+<footer class="footer" style="margin-top: 100px">
+    <div class="container">
+        <p class="text-muted text-center">by Bruno Bonagura
+            <a href="https://github.com/bbonagura9" target="_blank">
+                <img src="{{ url_for('static', filename='github-logo.png') }}" />
+            </a>
+        </p>
+    </div>
+</footer>
+
+<!--<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>-->
+<!-- Latest compiled and minified JavaScript -->
+<!--<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>-->
+
+</body>
+</html>

@@ -1,0 +1,233 @@
+{% extends "layout.html" %}
+
+{% block header %}
+<script type="text/javascript" src="{{ url_for('static', filename='canvasjs.min.js') }}"></script>
+{% endblock %}
+
+{% block body %}
+
+<h1>Relatório Geral</h1>
+
+
+<div class="container-fluid">
+	<script type="text/javascript">
+		$(window).load( function () {
+			var data = [];
+			var i = 0;
+			{% for dayofweek, count in data['ticket_open_per_day_of_week'] %}
+			data.push({ label: "{{ dayofweek }}", x: i++, y: {{ count }} });
+			{% endfor %}
+			var chart = new CanvasJS.Chart("ticket_open_per_day_of_week",
+				{
+					title:{
+					text: "Tickets abertos por dia da semana"
+				},
+				axisY: {
+					title: "Tickes criados"
+				},
+				data: [
+					{
+						color: "#8080a0",
+						dataPoints: data
+					}
+				]
+			});
+
+			chart.render();
+		});
+	</script>
+	<div class="row">
+		<div class="col-lg-8">
+			<div id="ticket_open_per_day_of_week" style="height: 300px; width: 100%;"></div>
+		</div>
+		<div class="col-lg-4">
+			<table class="table table-striped" style="width: 250px">
+			<tbody>
+				<tr>
+					<th>Dia</th>
+					<th>Tickets</th>
+				</tr>
+				{% for dayofweek, count in data['ticket_open_per_day_of_week'] %}
+				<tr>
+					<td><strong>{{ dayofweek }}</strong></td>
+					<td>{{ count }}</td>
+				</tr>
+				{% endfor %}
+				<tr>
+					<td><strong>Total</strong></td>
+					<td>{{ data['total_tickets'] }}</td>
+				</tr>
+			</tbody>
+			</table>
+		</div>
+	</div>
+
+	<hr />
+
+	<script type="text/javascript">
+		$(window).load( function () {
+			var data = [];
+			var i = 0;
+			{% for area_name, tickets in data['ticket_per_area'] %}
+			data.push({ label: '{{ area_name }}', x: i, y: {{ tickets }} }); i = i + 10;
+			{% endfor %}
+			var chart = new CanvasJS.Chart("ticket_per_area_chart",
+				{
+					title:{
+					text: "Tickets por área"
+				},
+				data: [
+					{
+						dataPoints: data
+					}
+				]
+			});
+
+			chart.render();
+		});
+	</script>
+	<div class="row">
+		<div class="col-lg-8">
+			<div id="ticket_per_area_chart" style="height: 300px; width: 100%;"></div>
+		</div>
+		<div class="col-lg-4">
+			<table class="table table-striped" style="width: 250px">
+			<tbody>
+				<tr>
+					<th>Área</th>
+					<th>Tickets</th>
+				</tr>
+				{% for area_name, tickets in data['ticket_per_area'] %}
+				<tr>
+					<td><strong>{{ area_name }}</strong></td>
+					<td>{{ tickets }}</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+			</table>
+		</div>
+	</div>
+
+	<hr />
+
+	<script type="text/javascript">
+	$(window).load( function () {
+		var chart = new CanvasJS.Chart("ticket_close_reason_chart",
+		{
+			title:{
+				text: "Motivo de Fechamento"
+			},
+			legend: {
+				maxWidth: 350,
+				itemWidth: 120
+			},
+			data: [
+			{
+				type: "pie",
+				showInLegend: true,
+				legendText: "{indexLabel}",
+				dataPoints: [
+					{% for reason, tickets, ratio in data['ticket_close_reason'] %}
+					{ y: {{ tickets }}, indexLabel: '{{ tr_close_reason[reason] }}' },
+					{% endfor %}
+				]
+			}
+			]
+		});
+		chart.render();
+	});
+	</script>
+	<div class="row">
+		<div class="col-lg-8">
+			<div id="ticket_close_reason_chart" style="height: 300px; width: 100%;"></div>
+		</div>
+		<div class="col-lg-4">
+			<table class="table table-striped" style="width: 250px">
+			<tbody>
+				<tr>
+					<th>Motivo</th>
+					<th>Qtde.</th>
+				</tr>
+				{% for reason, tickets, ratio in data['ticket_close_reason'] %}
+				<tr>
+					<td><strong>{{ tr_close_reason[reason] }}</strong></td>
+					<td>{{ tickets }} ({{ '%.2f' % ratio }}%)</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+			</table>
+		</div>
+	</div>
+
+	<hr />
+
+	<script type="text/javascript">
+		$(window).load( function () {
+			var data = [];
+			var i = 0;
+			{% for area_name, time_str, avg_time in data['ticket_time_per_area'] %}
+			data.push({ label: '{{ area_name }}', x: i, y: {{ avg_time/86400.0 }} }); i = i + 10;
+			{% endfor %}
+			var chart = new CanvasJS.Chart("ticket_wait_per_area_chart",
+				{
+					title:{
+					text: "Tempo médio de atendimento por área"
+				},
+				axisY: {
+					title: "Tempo (dias)"
+				},
+				data: [
+					{
+						dataPoints: data
+					}
+				]
+			});
+
+			chart.render();
+		});
+	</script>
+	<div class="row">
+		<div class="col-lg-8">
+			<div id="ticket_wait_per_area_chart" style="height: 300px; width: 100%;"></div>
+		</div>
+		<div class="col-lg-4">
+			<table class="table table-striped" style="width: 250px">
+			<tbody>
+				<tr>
+					<th>Área</th>
+					<th>Tempo</th>
+				</tr>
+				{% for area_name, time_str, avg_time in data['ticket_time_per_area'] %}
+				<tr>
+					<td><strong>{{ area_name }}</strong></td>
+					<td>{{ time_str }}</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+			</table>
+		</div>
+	</div>
+
+	<hr />
+
+	<div class="row">
+		<div class="col-lg-12">
+			<h2>Tickets assumidos por usuário</h2>
+			<table class="table table-striped" style="width: 250px">
+			<tbody>
+				<tr>
+					<th>Usuário</th>
+					<th>Tickets</th>
+				</tr>
+				{% for user_name, ticket_count in data['ticket_per_user'] %}
+				<tr>
+					<td><strong>{{ user_name }}</strong></td>
+					<td>{{ ticket_count }}</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+{% endblock %}

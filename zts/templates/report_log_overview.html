@@ -1,0 +1,54 @@
+{% extends "layout.html" %}
+
+{% block header %}
+<script type="text/javascript" src="{{ url_for('static', filename='canvasjs.min.js') }}"></script>
+{% endblock %}
+
+{% block body %}
+<h1>Visão geral de atividade</h1>
+
+<h3>Atividades por dia (últimos 60)</h3>
+<script type="text/javascript">
+	$(window).load( function () {
+		var data = [];
+		var i = 0;
+		{% for dt, entries in entries_per_day %}
+		data.push({ x: new Date({{ dt.strftime('%Y, parseInt(%m)-1, parseInt(%d)') }}), y: {{ entries }} });
+		{% endfor %}
+		var chart = new CanvasJS.Chart("entries_per_day",
+			{
+				title:{
+				text: "Atividades por dia"
+			},
+			axisY: {
+				title: "Entradas de log"
+			},
+			data: [
+				{
+					color: "#8080a0",
+					dataPoints: data
+				}
+			]
+		});
+
+		chart.render();
+	});
+</script>
+<div id="entries_per_day" style="height: 300px; width: 100%;"></div>
+
+<h3>Atividades por usuário</h3>
+<table class="table table-striped">
+<tbody>
+	<tr>
+		<th>Usuário</th>
+		<th></th>
+	</tr>
+	{% for user, entries in entries_per_user %}
+	<tr>
+		<td>{{ user }}</td>
+		<td>{{ entries }}</td>
+	</tr>
+	{% endfor %}
+</tbody>
+</table>
+{% endblock %}

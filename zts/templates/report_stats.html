@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+{% block body %}
+<h2>Números do dia&nbsp;&nbsp;<small>Gerado em {{ now.strftime('%H:%M %d/%m/%y') }}</small></h2>
+
+<div class="panel panel-default" style="width: 300px;">
+	<div class="panel-heading">Tickets atualmente abertos por área</div>
+	<table class="table table-striped">
+	<tbody>
+		<tr>
+			<th>Área</th>
+			<th>Tickets</th>
+		</tr>
+		{% for area_name, area_count in area_ticket_count %}
+		<tr>
+			<td>{{ area_name }}</td>
+			<td>{{ area_count }}</td>
+		</tr>
+		{% endfor %}
+	</tbody>
+	</table>
+</div>
+
+
+<div class="panel panel-default" style="width: 300px;">
+	<div class="panel-heading">Total de tickets hoje</div>
+	<table class="table table-striped">
+	<tbody>
+		<tr>
+			<td>Abertos</td>
+			<td>{{ tickets_opened_today }}</td>
+		</tr>
+		<tr>
+			<td>Fechados</td>
+			<td>{{ tickets_closed_today }}</td>
+		</tr>
+	</tbody>
+	</table>
+</div>
+{% endblock %}

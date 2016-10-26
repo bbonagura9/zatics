@@ -1,0 +1,79 @@
+{% extends "layout.html" %}
+{% block body %}
+    {% if current_user.is_authenticated %}
+		<div class="panel panel-default">
+			<div class="panel-body">
+				<h1>Visão Geral <small>para cada trigger do Zabbix, indica o estado do ticket</small></h1>
+				<table class='table table-striped table-condensed'>
+				<tbody>
+					<tr>
+						<th style="width: 100px">Idade</th>
+						<th style="width: 75px">Regional</th>
+						<th style="width: 95px">Destac.</th>
+						<th>Trigger</th>
+						<th>Ticket</th>
+						<th>Fonte</th>
+						<th>Área</th>
+						<th>Últ. Ação</th>
+					</tr>
+					{% for trigger, ticket in overview %}
+					<tr {{ 'class="success"' | safe if trigger['value'] == '0' else '' }}>
+						<td>{{ trigger['age'] }}</td>
+						<td>{{ trigger['regional'] }}</td>
+						<td>{{ trigger['destacamento'] }}</td>
+						<td style="width: 300px">{{ trigger['description'] }}</td>
+						{% if ticket is none %}
+							<td>-</td>
+							<td>-</td>
+							<td>-</td>
+							<td>-</td>
+						{% else %}
+							<td><a href="{{ url_for('ticket_show', ticket_id=ticket.id) }}">{{ ticket.id }}</a></td>
+							<td>
+								{% if ticket.is_mci() %}MCI {{ ticket.mci_number() }}
+								{% elif ticket.is_mosu() %}MOSU
+								{% elif ticket.zabbix_trigger_id is not none %}Zabbix
+								{% else %}Outra
+								{% endif %}
+							</td>
+							<td><a href="{{ url_for('ticket_list_area', area_id=ticket.current_area.id) }}">{{ ticket.current_area.name }}</a></td>
+							<td style="width: 300px">
+								{% if ticket.notes|length > 0 %}
+									({{ ticket.notes[-1].by.name }} - {{ ticket.notes[-1].at|day_short }} {{ ticket.notes[-1].at.strftime('%H:%M') }}) {{ ticket.notes[-1].text }}
+								{% else %}
+									Nenhuma
+								{% endif %}
+							</td>
+						{% endif %}
+					</tr>
+					{% endfor %}
+				</tbody>
+				</table>
+			</div>
+		</div>
+		<script type="text/javascript">
+			window.setTimeout(function() { window.location.reload(); }, 30*1000);
+		</script>
+	{% else %}
+		<div class="panel panel-default">
+			<div class="panel-body">
+				<p class="bg-warning">
+					<h3>
+						<p class="text-danger"><span class="glyphicon glyphicon-warning-sign"></span>&nbsp;&nbsp;Warning&nbsp;&nbsp;<span class="glyphicon glyphicon-warning-sign"></span></p>
+					</h3>
+					<p class="text-left">
+						The use of this application is restricted to authorized personel. 
+					</p>
+					<p class="text-left">
+						When using this you agree to:
+					</p>
+					<ul>
+						<li>Have all your actions logged and monitored, having no assured privacy</li>
+						<li>Keeping your password safe and not sharing it with others</li>
+						<li>Be accountable to the actions you take with your personal account</li>
+					</ul>
+				</p>
+			</div>
+		</div>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+{% block body %}
+<h1>Relatório diário</h1>
+<table class="table table-bordered">
+<tbody>
+	{% for item in report %}
+	<tr>
+		<td style="width: 10%"><strong>#{{ item.id }}</strong></td>
+		<td style="width: 85%"><strong>{{ item.title }}</strong></td>
+	</tr>
+	<tr>
+		<td colspan="2">
+			<table class="table table-striped table-condensed">
+				{% for action in item.actions %}
+				<tr>
+					<td style="width: 8%">{{ action[0].strftime('%H:%M') }}</td>
+					<td style="width: 15%">{{ action[1] }}</td>
+					<td style="width: 77%">{{ action[2] | nl2br }}</td>
+				</tr>
+				{% endfor %}
+			</table>
+		</td>
+	</tr>
+	{% endfor %}
+</tbody>
+</table>
+{% endblock %}

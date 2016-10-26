@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+{% block body %}
+<h1>Atividades recentes (100 items)</h1>
+<table class="table table-striped">
+<tbody>
+	<tr>
+		<th>Data/Hora</th>
+		<th>Severidade</th>
+		<th>Texto</th>
+	</tr>
+	{% for item in log_items %}
+	<tr class="{{ item['class'] }}">
+		<td style="width: 15%">{{ item['at'] }}</td>
+		<td style="width: 10%">{{ item['severity'] }}</td>
+		<td style="width: 75%">{{ item['text'] }}</td>
+	</tr>
+	{% endfor %}
+</tbody>
+</table>
+
+<script type="text/javascript">
+	window.setTimeout(function() { window.location.reload(); }, 30*1000);
+</script>
+{% endblock %}
