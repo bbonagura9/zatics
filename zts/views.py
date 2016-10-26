@@ -11,7 +11,6 @@ from wtforms import StringField, PasswordField, TextAreaField
 from wtforms.validators import DataRequired
 from flask_principal import Principal, Identity, AnonymousIdentity, \
      identity_changed, identity_loaded, RoleNeed
-from flask_admin.contrib.sqla import ModelView
 from sqlalchemy import func, distinct, desc
 from jinja2 import evalcontextfilter, Markup, escape
 from sqlalchemy.sql.expression import func, or_, and_
@@ -26,22 +25,15 @@ from zts import app, login_manager, db, admin
 from zts.models import User, Ticket, Note, Area, LoginForm, NoteForm, \
     TicketAreaTransferEvent, Event, TicketTakeEvent, TicketCloseEvent, \
     TicketTransferForm, ticket_close_permission, report_permission, admin_permission, \
-    TicketOpenForm, TicketReopenEvent, TicketNoteAddedEvent, TicketCloseReason
+    TicketOpenForm, TicketReopenEvent, TicketNoteAddedEvent, TicketCloseReason, \
+    ZtsModelView, ZtsUserModelView
 import config
 from pyzabbix import ZabbixAPI
 from pprint import pformat,pprint
 
 logger = logging.getLogger(config.ZTS_LOGGER_NAME)
 
-class ZtsModelView(ModelView):
-    def is_accessible(self):
-        return current_user.is_authenticated and current_user.is_admin()
-
-    def inaccessible_callback(self, name, **kwargs):
-        # redirect to login page if user doesn't have access
-        return redirect(url_for('index'))
-
-admin.add_view(ZtsModelView(User, db.session))
+admin.add_view(ZtsUserModelView(User, db.session))
 admin.add_view(ZtsModelView(Area, db.session))
 admin.add_view(ZtsModelView(TicketCloseReason, db.session))
 
@@ -466,7 +458,7 @@ def report_log_overview():
         return (datetime.strptime(res_arr[1], '%Y-%m-%d'), int(res_arr[0]))
 
     entries_per_day_arr = subprocess.check_output('''
-       cat {log_path} {log_path}.* | grep -E '^[0-9]{4}-[0-9]{2}-[0-9]{2}' | grep -v Zabbix | cut -d' ' -f1 | sort | uniq -c
+       cat {log_path} {log_path}.* | grep -E '^[0-9]{{4}}-[0-9]{{2}}-[0-9]{{2}}' | grep -v Zabbix | cut -d' ' -f1 | sort | uniq -c
     '''.format(log_path=config.ZTS_LOG_FILE), shell=True).strip().split('\n')
     entries_per_day = sorted(
         filter(
@@ -478,7 +470,7 @@ def report_log_overview():
 
     user_list = dict(db.session.query(User.user, User.name).all())
     entries_per_user_arr = subprocess.check_output('''
-        cat {log_path} {log_path}.* | grep -E "^[0-9]{4}-[0-9]{2}-[0-9]{2}" | cut -d' ' -f4 | sort | uniq -c
+        cat {log_path} {log_path}.* | grep -E "^[0-9]{{4}}-[0-9]{{2}}-[0-9]{{2}}" | cut -d' ' -f4 | sort | uniq -c
     '''.format(log_path=config.ZTS_LOG_FILE), shell=True).strip().split('\n')
     entries_per_user = sorted(
         filter(

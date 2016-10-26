@@ -67,15 +67,15 @@
                             Reports <span class="caret"></span>
                             </a>
                             <ul class="dropdown-menu">
-                                <li role="presentation"><a href="{{ url_for('report_tickets_per_area') }}">Tickets por área</a></li>
-                                <li role="presentation"><a href="{{ url_for('report_tickets_per_weekday') }}">Tickets por dia da semana</a></li>
-                                <li role="presentation"><a href="{{ url_for('report_tickets_close_reason') }}">Fechados por motivo</a></li>
+                                <li role="presentation"><a href="{{ url_for('report_tickets_per_area') }}">Tickets per area</a></li>
+                                <li role="presentation"><a href="{{ url_for('report_tickets_per_weekday') }}">Tickets per week day</a></li>
+                                <li role="presentation"><a href="{{ url_for('report_tickets_close_reason') }}">Closing reason</a></li>
                                 <li role="separator" class="divider"></li>
-                                <li role="presentation"><a href="{{ url_for('report_recent_log') }}">Atividades recentes</a></li>
-                                <li role="presentation"><a href="{{ url_for('report_log_overview') }}">Visão geral de atividade</a></li>
+                                <li role="presentation"><a href="{{ url_for('report_recent_log') }}">Live activity log</a></li>
+                                <li role="presentation"><a href="{{ url_for('report_log_overview') }}">Activity log overview</a></li>
                                 <li role="separator" class="divider"></li>
-                                <li role="presentation"><a href="{{ url_for('report_daily') }}">Diário</a></li>
-                                <li role="presentation"><a href="{{ url_for('report_stats') }}">Números do dia</a></li>
+                                <li role="presentation"><a href="{{ url_for('report_daily') }}">Today's journal</a></li>
+                                <li role="presentation"><a href="{{ url_for('report_stats') }}">Today's statistics</a></li>
                             </ul>
                         </li>
                         {% endif %}

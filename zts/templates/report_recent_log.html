@@ -1,12 +1,12 @@
 {% extends "layout.html" %}
 {% block body %}
-<h1>Atividades recentes (100 items)</h1>
+<h1>Recent log (100 items)</h1>
 <table class="table table-striped">
 <tbody>
 	<tr>
-		<th>Data/Hora</th>
-		<th>Severidade</th>
-		<th>Texto</th>
+		<th>Date/Time</th>
+		<th>Severity</th>
+		<th>Text</th>
 	</tr>
 	{% for item in log_items %}
 	<tr class="{{ item['class'] }}">

@@ -13,6 +13,7 @@ from wtforms import StringField, PasswordField, TextAreaField, SelectField
 from wtforms.validators import DataRequired
 from flask_principal import Principal, Identity, AnonymousIdentity, \
      identity_changed, Permission, RoleNeed, identity_loaded
+from flask_admin.contrib.sqla import ModelView
 from datetime import datetime, timedelta
 import math
 from zts import db, app, principal
@@ -285,3 +286,21 @@ class TicketOpenForm(Form):
     title = StringField('title', validators=[DataRequired()])
     text = TextAreaField('text', validators=[DataRequired()])
     current_area_id = SelectField(u'Area', coerce=int, validators=[DataRequired()])
+
+class ZtsModelView(ModelView):
+    def is_accessible(self):
+        return current_user.is_authenticated and current_user.is_admin()
+
+    def inaccessible_callback(self, name, **kwargs):
+        # redirect to login page if user doesn't have access
+        return redirect(url_for('index'))
+
+class ZtsUserModelView(ZtsModelView):
+    column_exclude_list = list = ('pwhash',)
+    form_excluded_columns = ('pwhash',)
+    form_extra_fields = {
+        'password': PasswordField('Password')
+    }
+    def on_model_change(self, form, model, is_created):
+        if len(model.password):
+            model.set_password(model.password)

@@ -5,9 +5,9 @@
 {% endblock %}
 
 {% block body %}
-<h1>Visão geral de atividade</h1>
+<h1>Activity log overview</h1>
 
-<h3>Atividades por dia (últimos 60)</h3>
+<h3>User actions per day (last 60 days)</h3>
 <script type="text/javascript">
 	$(window).load( function () {
 		var data = [];
@@ -18,10 +18,10 @@
 		var chart = new CanvasJS.Chart("entries_per_day",
 			{
 				title:{
-				text: "Atividades por dia"
+				text: "User actions per day"
 			},
 			axisY: {
-				title: "Entradas de log"
+				title: "Log entries"
 			},
 			data: [
 				{
@@ -36,11 +36,11 @@
 </script>
 <div id="entries_per_day" style="height: 300px; width: 100%;"></div>
 
-<h3>Atividades por usuário</h3>
+<h3>Actions per user</h3>
 <table class="table table-striped">
 <tbody>
 	<tr>
-		<th>Usuário</th>
+		<th>Username</th>
 		<th></th>
 	</tr>
 	{% for user, entries in entries_per_user %}
